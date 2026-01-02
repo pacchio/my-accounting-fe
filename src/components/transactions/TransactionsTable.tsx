@@ -1,45 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 
-// Animated collapse - renders content only when needed for performance
-const AnimatedCollapse = ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
-  const [shouldRender, setShouldRender] = useState(isOpen);
-  const [animateOpen, setAnimateOpen] = useState(isOpen);
-
-  useEffect(() => {
-    if (isOpen) {
-      setShouldRender(true);
-      // Small delay to ensure content is rendered before animation starts
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setAnimateOpen(true);
-        });
-      });
-    } else {
-      setAnimateOpen(false);
-      // Keep content rendered during close animation
-      const timer = setTimeout(() => setShouldRender(false), 200);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
-
-  if (!shouldRender) return null;
-
+// Animated collapse - pure CSS animation without setState in effects
+const AnimatedCollapse = memo(({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   return (
     <div
-      className="grid transition-[grid-template-rows] duration-200 ease-out"
-      style={{
-        gridTemplateRows: animateOpen ? '1fr' : '0fr',
-        willChange: 'grid-template-rows'
-      }}
+      className={`overflow-hidden transition-all duration-300 ease-in-out ${
+        isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+      }`}
     >
-      <div className="overflow-hidden">
-        {children}
-      </div>
+      {children}
     </div>
   );
-};
+});
+AnimatedCollapse.displayName = 'AnimatedCollapse';
+
 import {
   Table,
   TableBody,
@@ -63,6 +39,180 @@ import { EditTransactionDialog } from './EditTransactionDialog';
 import { DeleteTransactionDialog } from './DeleteTransactionDialog';
 import { DeleteGroupDialog } from './DeleteGroupDialog';
 
+// Memoized transaction item to prevent re-renders
+interface TransactionItemProps {
+  transaction: Transaction;
+  colorClass: string;
+  onEdit: (t: Transaction) => void;
+  onDelete: (t: Transaction) => void;
+  formatCurrency: (amount: number) => string;
+}
+
+const TransactionItem = memo(({ transaction, colorClass, onEdit, onDelete, formatCurrency }: TransactionItemProps) => (
+  <div className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-2">
+    <div className="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-1.5 text-xs min-w-0 flex-1">
+      <span className="font-medium text-muted-foreground whitespace-nowrap">
+        {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
+      </span>
+      <span className={`text-xs font-bold ${colorClass} whitespace-nowrap lg:hidden`}>
+        {formatCurrency(transaction.amount)}
+      </span>
+      <span className="text-muted-foreground hidden lg:inline">•</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-muted-foreground truncate">
+          {transaction.bill.description}
+        </span>
+        {transaction.additionalNotes && (
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                type="button"
+                className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0 touch-manipulation"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="h-3 w-3" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              {transaction.additionalNotes}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    </div>
+    <div className="flex items-center gap-2 ml-2">
+      <span className={`text-xs font-bold ${colorClass} whitespace-nowrap hidden lg:inline`}>
+        {formatCurrency(transaction.amount)}
+      </span>
+      <div className="flex gap-0.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(transaction);
+          }}
+        >
+          <Edit className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(transaction);
+          }}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  </div>
+));
+TransactionItem.displayName = 'TransactionItem';
+
+// Memoized transaction group component
+interface TransactionGroupProps {
+  group: { transactions: Transaction[]; description: string; total: number };
+  descKey: string;
+  isExpanded: boolean;
+  colorClass: string;
+  onToggle: (key: string, e: React.MouseEvent) => void;
+  onDeleteGroup: (transactions: Transaction[], description: string, e: React.MouseEvent) => void;
+  onEdit: (t: Transaction) => void;
+  onDelete: (t: Transaction) => void;
+  formatCurrency: (amount: number) => string;
+}
+
+const TransactionGroup = memo(({
+  group, descKey, isExpanded, colorClass, onToggle, onDeleteGroup, onEdit, onDelete, formatCurrency
+}: TransactionGroupProps) => (
+  <div className="space-y-1.5">
+    <div
+      className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
+      onClick={(e) => onToggle(descKey, e)}
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 p-0 hover:bg-muted shrink-0"
+        onClick={(e) => onDeleteGroup(group.transactions, group.description, e)}
+      >
+        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+      </Button>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2 flex-1 min-w-0">
+        <span className={`text-sm font-bold ${colorClass} whitespace-nowrap shrink-0`}>
+          {formatCurrency(group.total)}
+        </span>
+        <span className="text-xs lg:text-sm font-medium lg:flex-1 truncate min-w-0 lg:text-center">
+          {group.description}
+        </span>
+      </div>
+      {isExpanded ? (
+        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+      ) : (
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+      )}
+    </div>
+    <AnimatedCollapse isOpen={isExpanded}>
+      <div className="space-y-1.5 pt-1.5">
+        {group.transactions.map((transaction) => (
+          <TransactionItem
+            key={transaction.id}
+            transaction={transaction}
+            colorClass={colorClass}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            formatCurrency={formatCurrency}
+          />
+        ))}
+      </div>
+    </AnimatedCollapse>
+  </div>
+));
+TransactionGroup.displayName = 'TransactionGroup';
+
+// Memoized withdrawal item
+interface WithdrawalItemProps {
+  transaction: Transaction;
+  onDelete: (t: Transaction) => void;
+  formatCurrency: (amount: number) => string;
+}
+
+const WithdrawalItem = memo(({ transaction, onDelete, formatCurrency }: WithdrawalItemProps) => (
+  <div className="flex items-center justify-between rounded-lg bg-card border border-border/50 px-3 py-2 shadow-sm">
+    <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col md:flex-col lg:flex-row lg:items-center lg:gap-2">
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
+        </span>
+        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+          {formatCurrency(transaction.amount)}
+        </span>
+      </div>
+      <div className="flex items-center gap-1 text-xs text-muted-foreground break-words">
+        <span className="font-medium break-words">{transaction.billFromWhichWithdraw?.description}</span>
+        <span>→</span>
+        <span className="font-medium break-words">{transaction.bill?.description}</span>
+      </div>
+    </div>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+      onClick={(e) => {
+        e.stopPropagation();
+        onDelete(transaction);
+      }}
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
+  </div>
+));
+WithdrawalItem.displayName = 'WithdrawalItem';
+
 interface TransactionsTableProps {
   data?: TransactionsByYear[];
   isLoading?: boolean;
@@ -77,59 +227,65 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
 
-  const handleEdit = (transaction: Transaction) => {
+  // Memoized handlers to prevent child re-renders
+  const handleEdit = useCallback((transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (transaction: Transaction) => {
+  const handleDelete = useCallback((transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteGroup = (transactions: Transaction[], description: string, e: React.MouseEvent) => {
+  const handleDeleteGroup = useCallback((transactions: Transaction[], description: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedGroup({ transactions, description });
     setIsDeleteGroupDialogOpen(true);
-  };
+  }, []);
 
-  const toggleMonth = (monthKey: string) => {
-    const newExpanded = new Set(expandedMonths);
-    if (newExpanded.has(monthKey)) {
-      newExpanded.delete(monthKey);
-    } else {
-      newExpanded.add(monthKey);
-    }
-    setExpandedMonths(newExpanded);
-  };
+  const toggleMonth = useCallback((monthKey: string) => {
+    setExpandedMonths(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(monthKey)) {
+        newExpanded.delete(monthKey);
+      } else {
+        newExpanded.add(monthKey);
+      }
+      return newExpanded;
+    });
+  }, []);
 
-  const toggleDescription = (descriptionKey: string, e: React.MouseEvent) => {
+  const toggleDescription = useCallback((descriptionKey: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newExpanded = new Set(expandedDescriptions);
-    if (newExpanded.has(descriptionKey)) {
-      newExpanded.delete(descriptionKey);
-    } else {
-      newExpanded.add(descriptionKey);
-    }
-    setExpandedDescriptions(newExpanded);
-  };
+    setExpandedDescriptions(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(descriptionKey)) {
+        newExpanded.delete(descriptionKey);
+      } else {
+        newExpanded.add(descriptionKey);
+      }
+      return newExpanded;
+    });
+  }, []);
 
-  const formatCurrency = (amount: number) => {
+  // Memoized formatCurrency to prevent re-creation
+  const formatCurrency = useCallback((amount: number) => {
     return new Intl.NumberFormat('it-IT', {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
-  };
+  }, []);
 
-  const getMonthName = (monthNum: string) => {
+  const getMonthName = useCallback((monthNum: string) => {
     const date = new Date(2000, parseInt(monthNum) - 1, 1);
     return format(date, 'MMMM').toUpperCase();
-  };
+  }, []);
 
-  const getMonthNameShort = (monthNum: string) => {
+  const getMonthNameShort = useCallback((monthNum: string) => {
     const date = new Date(2000, parseInt(monthNum) - 1, 1);
     return format(date, 'MMM').toUpperCase();
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -241,106 +397,19 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                               <div className="space-y-2">
                                 {monthData.expenseTransactions.map((group) => {
                                   const descKey = `expense-${monthKey}-${group.description}`;
-                                  const isDescExpanded = expandedDescriptions.has(descKey);
                                   return (
-                                    <div key={group.description} className="space-y-1.5">
-                                      <div
-                                        className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
-                                        onClick={(e) => toggleDescription(descKey, e)}
-                                      >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 p-0 hover:bg-muted shrink-0"
-                                          onClick={(e) => handleDeleteGroup(group.transactions, group.description, e)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                        </Button>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2 flex-1 min-w-0">
-                                          <span className="text-sm font-bold text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
-                                            {formatCurrency(group.total)}
-                                          </span>
-                                          <span className="text-xs lg:text-sm font-medium lg:flex-1 truncate min-w-0 lg:text-center">
-                                            {group.description}
-                                          </span>
-                                        </div>
-                                        {isDescExpanded ? (
-                                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        ) : (
-                                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        )}
-                                      </div>
-                                      <AnimatedCollapse isOpen={isDescExpanded}>
-                                        <div className="space-y-1.5 pt-1.5">
-                                          {group.transactions.map((transaction) => (
-                                            <div
-                                              key={transaction.id}
-                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-2"
-                                            >
-                                              <div className="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-1.5 text-xs min-w-0 flex-1">
-                                                <span className="font-medium text-muted-foreground whitespace-nowrap">
-                                                  {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                                </span>
-                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap lg:hidden">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <span className="text-muted-foreground hidden lg:inline">•</span>
-                                                <div className="flex items-center gap-1.5">
-                                                  <span className="text-muted-foreground truncate">
-                                                    {transaction.bill.description}
-                                                  </span>
-                                                  {transaction.additionalNotes && (
-                                                    <Tooltip>
-                                                      <TooltipTrigger>
-                                                        <button
-                                                          type="button"
-                                                          className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0 touch-manipulation"
-                                                          onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                          <Info className="h-3 w-3" />
-                                                        </button>
-                                                      </TooltipTrigger>
-                                                      <TooltipContent side="top" className="max-w-xs">
-                                                        {transaction.additionalNotes}
-                                                      </TooltipContent>
-                                                    </Tooltip>
-                                                  )}
-                                                </div>
-                                              </div>
-                                              <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap hidden lg:inline">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <div className="flex gap-0.5">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleEdit(transaction);
-                                                    }}
-                                                  >
-                                                    <Edit className="h-3 w-3" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleDelete(transaction);
-                                                    }}
-                                                  >
-                                                    <Trash2 className="h-3 w-3" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </AnimatedCollapse>
-                                    </div>
+                                    <TransactionGroup
+                                      key={group.description}
+                                      group={group}
+                                      descKey={descKey}
+                                      isExpanded={expandedDescriptions.has(descKey)}
+                                      colorClass="text-red-600 dark:text-red-400"
+                                      onToggle={toggleDescription}
+                                      onDeleteGroup={handleDeleteGroup}
+                                      onEdit={handleEdit}
+                                      onDelete={handleDelete}
+                                      formatCurrency={formatCurrency}
+                                    />
                                   );
                                 })}
                                 {monthData.expenseTransactions.length === 0 && (
@@ -356,100 +425,19 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                               <div className="space-y-2">
                                 {monthData.earningTransactions.map((group) => {
                                   const descKey = `income-${monthKey}-${group.description}`;
-                                  const isDescExpanded = expandedDescriptions.has(descKey);
                                   return (
-                                    <div key={group.description} className="space-y-1.5">
-                                      <div
-                                        className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
-                                        onClick={(e) => toggleDescription(descKey, e)}
-                                      >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 p-0 hover:bg-muted shrink-0"
-                                          onClick={(e) => handleDeleteGroup(group.transactions, group.description, e)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                        </Button>
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2 flex-1 min-w-0">
-                                          <span className="text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap shrink-0">
-                                            {formatCurrency(group.total)}
-                                          </span>
-                                          <span className="text-xs lg:text-sm font-medium lg:flex-1 truncate min-w-0 lg:text-center">
-                                            {group.description}
-                                          </span>
-                                        </div>
-                                        {isDescExpanded ? (
-                                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        ) : (
-                                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        )}
-                                      </div>
-                                      <AnimatedCollapse isOpen={isDescExpanded}>
-                                        <div className="space-y-1.5 pt-1.5">
-                                          {group.transactions.map((transaction) => (
-                                            <div
-                                              key={transaction.id}
-                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-4"
-                                            >
-                                              <div className="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-1.5 text-xs min-w-0 flex-1">
-                                                <span className="font-medium text-muted-foreground whitespace-nowrap">
-                                                  {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                                </span>
-                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap lg:hidden">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <span className="text-muted-foreground hidden lg:inline">•</span>
-                                                <div className="flex items-center gap-1.5">
-                                                  <span className="text-muted-foreground truncate">
-                                                    {transaction.bill.description}
-                                                  </span>
-                                                  {transaction.additionalNotes && (
-                                                    <Tooltip>
-                                                      <TooltipTrigger asChild>
-                                                        <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
-                                                      </TooltipTrigger>
-                                                      <TooltipContent side="top" className="max-w-xs">
-                                                        {transaction.additionalNotes}
-                                                      </TooltipContent>
-                                                    </Tooltip>
-                                                  )}
-                                                </div>
-                                              </div>
-                                              <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap hidden lg:inline">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <div className="flex gap-0.5">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleEdit(transaction);
-                                                    }}
-                                                  >
-                                                    <Edit className="h-3 w-3" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleDelete(transaction);
-                                                    }}
-                                                  >
-                                                    <Trash2 className="h-3 w-3" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </AnimatedCollapse>
-                                    </div>
+                                    <TransactionGroup
+                                      key={group.description}
+                                      group={group}
+                                      descKey={descKey}
+                                      isExpanded={expandedDescriptions.has(descKey)}
+                                      colorClass="text-green-600 dark:text-green-400"
+                                      onToggle={toggleDescription}
+                                      onDeleteGroup={handleDeleteGroup}
+                                      onEdit={handleEdit}
+                                      onDelete={handleDelete}
+                                      formatCurrency={formatCurrency}
+                                    />
                                   );
                                 })}
                                 {monthData.earningTransactions.length === 0 && (
@@ -469,37 +457,12 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                 {monthData.withdrawals.length > 0 && (
                                   <div className="space-y-2">
                                     {monthData.withdrawals.map((transaction) => (
-                                      <div
+                                      <WithdrawalItem
                                         key={transaction.id}
-                                        className="flex items-center justify-between rounded-lg bg-card border border-border/50 px-3 py-2 shadow-sm"
-                                      >
-                                        <div className="flex flex-col gap-0.5">
-                                          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
-                                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                              {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                            </span>
-                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                              {formatCurrency(transaction.amount)}
-                                            </span>
-                                          </div>
-                                          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-                                            <span className="font-medium">{transaction.billFromWhichWithdraw?.description}</span>
-                                            <span>→</span>
-                                            <span className="font-medium">{transaction.bill?.description}</span>
-                                          </div>
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(transaction);
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
+                                        transaction={transaction}
+                                        onDelete={handleDelete}
+                                        formatCurrency={formatCurrency}
+                                      />
                                     ))}
                                   </div>
                                 )}
@@ -520,93 +483,19 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                               <div className="space-y-2">
                                 {monthData.expenseTransactions.map((group) => {
                                   const descKey = `expense-mobile-${monthKey}-${group.description}`;
-                                  const isDescExpanded = expandedDescriptions.has(descKey);
                                   return (
-                                    <div key={group.description} className="space-y-1.5">
-                                      <div
-                                        className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
-                                        onClick={(e) => toggleDescription(descKey, e)}
-                                      >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 p-0 hover:bg-muted shrink-0"
-                                          onClick={(e) => handleDeleteGroup(group.transactions, group.description, e)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                        </Button>
-                                        <span className="text-sm font-bold text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
-                                          {formatCurrency(group.total)}
-                                        </span>
-                                        <span className="text-sm font-medium flex-1 truncate min-w-0 text-center">
-                                          {group.description}
-                                        </span>
-                                        {isDescExpanded ? (
-                                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        ) : (
-                                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        )}
-                                      </div>
-                                      <AnimatedCollapse isOpen={isDescExpanded}>
-                                        <div className="space-y-1.5 pt-1.5">
-                                          {group.transactions.map((transaction) => (
-                                            <div
-                                              key={transaction.id}
-                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-4"
-                                            >
-                                              <div className="flex items-center gap-1.5 text-xs min-w-0 flex-1">
-                                                <span className="font-medium text-muted-foreground whitespace-nowrap">
-                                                  {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                                </span>
-                                                <span className="text-muted-foreground">•</span>
-                                                <span className="text-muted-foreground truncate">
-                                                  {transaction.bill.description}
-                                                </span>
-                                                {transaction.additionalNotes && (
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                      {transaction.additionalNotes}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                )}
-                                              </div>
-                                              <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <div className="flex gap-0.5">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleEdit(transaction);
-                                                    }}
-                                                  >
-                                                    <Edit className="h-3 w-3" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleDelete(transaction);
-                                                    }}
-                                                  >
-                                                    <Trash2 className="h-3 w-3" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </AnimatedCollapse>
-                                    </div>
+                                    <TransactionGroup
+                                      key={group.description}
+                                      group={group}
+                                      descKey={descKey}
+                                      isExpanded={expandedDescriptions.has(descKey)}
+                                      colorClass="text-red-600 dark:text-red-400"
+                                      onToggle={toggleDescription}
+                                      onDeleteGroup={handleDeleteGroup}
+                                      onEdit={handleEdit}
+                                      onDelete={handleDelete}
+                                      formatCurrency={formatCurrency}
+                                    />
                                   );
                                 })}
                                 {monthData.expenseTransactions.length === 0 && (
@@ -621,93 +510,19 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                               <div className="space-y-2">
                                 {monthData.earningTransactions.map((group) => {
                                   const descKey = `income-mobile-${monthKey}-${group.description}`;
-                                  const isDescExpanded = expandedDescriptions.has(descKey);
                                   return (
-                                    <div key={group.description} className="space-y-1.5">
-                                      <div
-                                        className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
-                                        onClick={(e) => toggleDescription(descKey, e)}
-                                      >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7 p-0 hover:bg-muted shrink-0"
-                                          onClick={(e) => handleDeleteGroup(group.transactions, group.description, e)}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                        </Button>
-                                        <span className="text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap shrink-0">
-                                          {formatCurrency(group.total)}
-                                        </span>
-                                        <span className="text-sm font-medium flex-1 truncate min-w-0 text-center">
-                                          {group.description}
-                                        </span>
-                                        {isDescExpanded ? (
-                                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        ) : (
-                                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                                        )}
-                                      </div>
-                                      <AnimatedCollapse isOpen={isDescExpanded}>
-                                        <div className="space-y-1.5 pt-1.5">
-                                          {group.transactions.map((transaction) => (
-                                            <div
-                                              key={transaction.id}
-                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-4"
-                                            >
-                                              <div className="flex items-center gap-1.5 text-xs min-w-0 flex-1">
-                                                <span className="font-medium text-muted-foreground whitespace-nowrap">
-                                                  {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                                </span>
-                                                <span className="text-muted-foreground">•</span>
-                                                <span className="text-muted-foreground truncate">
-                                                  {transaction.bill.description}
-                                                </span>
-                                                {transaction.additionalNotes && (
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                      {transaction.additionalNotes}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                )}
-                                              </div>
-                                              <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap">
-                                                  {formatCurrency(transaction.amount)}
-                                                </span>
-                                                <div className="flex gap-0.5">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleEdit(transaction);
-                                                    }}
-                                                  >
-                                                    <Edit className="h-3 w-3" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleDelete(transaction);
-                                                    }}
-                                                  >
-                                                    <Trash2 className="h-3 w-3" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </AnimatedCollapse>
-                                    </div>
+                                    <TransactionGroup
+                                      key={group.description}
+                                      group={group}
+                                      descKey={descKey}
+                                      isExpanded={expandedDescriptions.has(descKey)}
+                                      colorClass="text-green-600 dark:text-green-400"
+                                      onToggle={toggleDescription}
+                                      onDeleteGroup={handleDeleteGroup}
+                                      onEdit={handleEdit}
+                                      onDelete={handleDelete}
+                                      formatCurrency={formatCurrency}
+                                    />
                                   );
                                 })}
                                 {monthData.earningTransactions.length === 0 && (
@@ -721,37 +536,12 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                               <h4 className="text-xs font-semibold text-blue-600 uppercase mb-2">Withdrawals</h4>
                               <div className="space-y-2">
                                 {monthData.withdrawals.map((transaction) => (
-                                  <div
+                                  <WithdrawalItem
                                     key={transaction.id}
-                                    className="flex items-center justify-between rounded-lg bg-card border border-border/50 px-3 py-2 shadow-sm"
-                                  >
-                                    <div className="flex flex-col gap-0.5">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                          {formatCurrency(transaction.amount)}
-                                        </span>
-                                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                          {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <span className="font-medium">{transaction.billFromWhichWithdraw?.description}</span>
-                                        <span>→</span>
-                                        <span className="font-medium">{transaction.bill?.description}</span>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(transaction);
-                                      }}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </div>
+                                    transaction={transaction}
+                                    onDelete={handleDelete}
+                                    formatCurrency={formatCurrency}
+                                  />
                                 ))}
                                 {monthData.withdrawals.length === 0 && (
                                   <p className="text-xs text-muted-foreground text-center py-2">No withdrawals</p>
