@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { hydrateAuth } from '@/store/slices/authSlice';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 function AuthHydration({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -18,9 +19,11 @@ function AuthHydration({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      <AuthHydration>
-        {children}
-      </AuthHydration>
+      <TooltipProvider delayDuration={200} skipDelayDuration={300}>
+        <AuthHydration>
+          {children}
+        </AuthHydration>
+      </TooltipProvider>
       <Toaster />
     </Provider>
   );

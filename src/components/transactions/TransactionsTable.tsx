@@ -166,12 +166,12 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
           <Table className="sm:table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8 sm:w-[2%]"></TableHead>
-                <TableHead className="sm:w-[4%]">Month</TableHead>
-                <TableHead className="text-right sm:w-[32%]">Expenses</TableHead>
-                <TableHead className="text-right sm:w-[27%]">Income</TableHead>
-                <TableHead className="text-right font-semibold sm:w-[12%]">Total</TableHead>
-                <TableHead className="text-right hidden sm:table-cell sm:w-[23%]">Withdrawals</TableHead>
+                <TableHead className="w-8 sm:w-[5%]"></TableHead>
+                <TableHead className="sm:w-[5%]">Month</TableHead>
+                <TableHead className="text-right sm:w-[24%]">Expenses</TableHead>
+                <TableHead className="text-right sm:w-[34%]">Income</TableHead>
+                <TableHead className="text-right font-semibold sm:w-[10%]">Total</TableHead>
+                <TableHead className="text-right hidden sm:table-cell sm:w-[20%]">Withdrawals</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -211,8 +211,8 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                         )}
                       </TableCell>
                       <TableCell className="font-bold text-primary">
-                        <span className="hidden sm:inline">{getMonthName(monthData.month)}</span>
-                        <span className="sm:hidden">{getMonthNameShort(monthData.month)}</span>
+                        <span className="hidden md:inline">{getMonthName(monthData.month)}</span>
+                        <span className="md:hidden">{getMonthNameShort(monthData.month)}</span>
                       </TableCell>
                       <TableCell className="text-right text-red-600 font-medium">
                         {formatCurrency(monthData.totalExpenseTransactions)}
@@ -233,7 +233,7 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                       <TableCell colSpan={6} className="p-0">
                         <AnimatedCollapse isOpen={isExpanded}>
                           {/* Desktop: Grid layout with fixed percentages matching table */}
-                          <div className="hidden sm:grid sm:grid-cols-[2%_4%_32%_27%_12%_23%] py-3">
+                          <div className="hidden sm:grid sm:grid-cols-[0%_0%_35%_35%_6%_24%] py-3">
                             <div></div>
                             <div></div>
                             {/* Expense Column */}
@@ -256,12 +256,14 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                         >
                                           <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                                         </Button>
-                                        <span className="text-sm font-bold text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
-                                          {formatCurrency(group.total)}
-                                        </span>
-                                        <span className="text-sm font-medium flex-1 truncate min-w-0 text-center">
-                                          {group.description}
-                                        </span>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2 flex-1 min-w-0">
+                                          <span className="text-sm font-bold text-red-600 dark:text-red-400 whitespace-nowrap shrink-0">
+                                            {formatCurrency(group.total)}
+                                          </span>
+                                          <span className="text-xs lg:text-sm font-medium lg:flex-1 truncate min-w-0 lg:text-center">
+                                            {group.description}
+                                          </span>
+                                        </div>
                                         {isDescExpanded ? (
                                           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                                         ) : (
@@ -273,29 +275,40 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                           {group.transactions.map((transaction) => (
                                             <div
                                               key={transaction.id}
-                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-4"
+                                              className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-2"
                                             >
-                                              <div className="flex items-center gap-1.5 text-xs min-w-0 flex-1">
+                                              <div className="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-1.5 text-xs min-w-0 flex-1">
                                                 <span className="font-medium text-muted-foreground whitespace-nowrap">
                                                   {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
                                                 </span>
-                                                <span className="text-muted-foreground">•</span>
-                                                <span className="text-muted-foreground truncate">
-                                                  {transaction.bill.description}
+                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap lg:hidden">
+                                                  {formatCurrency(transaction.amount)}
                                                 </span>
-                                                {transaction.additionalNotes && (
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                      {transaction.additionalNotes}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                )}
+                                                <span className="text-muted-foreground hidden lg:inline">•</span>
+                                                <div className="flex items-center gap-1.5">
+                                                  <span className="text-muted-foreground truncate">
+                                                    {transaction.bill.description}
+                                                  </span>
+                                                  {transaction.additionalNotes && (
+                                                    <Tooltip>
+                                                      <TooltipTrigger>
+                                                        <button
+                                                          type="button"
+                                                          className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0 touch-manipulation"
+                                                          onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                          <Info className="h-3 w-3" />
+                                                        </button>
+                                                      </TooltipTrigger>
+                                                      <TooltipContent side="top" className="max-w-xs">
+                                                        {transaction.additionalNotes}
+                                                      </TooltipContent>
+                                                    </Tooltip>
+                                                  )}
+                                                </div>
                                               </div>
                                               <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap">
+                                                <span className="text-xs font-bold text-red-600 dark:text-red-400 whitespace-nowrap hidden lg:inline">
                                                   {formatCurrency(transaction.amount)}
                                                 </span>
                                                 <div className="flex gap-0.5">
@@ -358,12 +371,14 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                         >
                                           <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                                         </Button>
-                                        <span className="text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap shrink-0">
-                                          {formatCurrency(group.total)}
-                                        </span>
-                                        <span className="text-sm font-medium flex-1 truncate min-w-0 text-center">
-                                          {group.description}
-                                        </span>
+                                        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2 flex-1 min-w-0">
+                                          <span className="text-sm font-bold text-green-600 dark:text-green-400 whitespace-nowrap shrink-0">
+                                            {formatCurrency(group.total)}
+                                          </span>
+                                          <span className="text-xs lg:text-sm font-medium lg:flex-1 truncate min-w-0 lg:text-center">
+                                            {group.description}
+                                          </span>
+                                        </div>
                                         {isDescExpanded ? (
                                           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                                         ) : (
@@ -377,27 +392,32 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                               key={transaction.id}
                                               className="flex items-center justify-between rounded-lg bg-muted/30 border border-border/30 px-3 py-2 ml-4"
                                             >
-                                              <div className="flex items-center gap-1.5 text-xs min-w-0 flex-1">
+                                              <div className="flex flex-col lg:flex-row lg:items-center gap-0.5 lg:gap-1.5 text-xs min-w-0 flex-1">
                                                 <span className="font-medium text-muted-foreground whitespace-nowrap">
                                                   {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
                                                 </span>
-                                                <span className="text-muted-foreground">•</span>
-                                                <span className="text-muted-foreground truncate">
-                                                  {transaction.bill.description}
+                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap lg:hidden">
+                                                  {formatCurrency(transaction.amount)}
                                                 </span>
-                                                {transaction.additionalNotes && (
-                                                  <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                      <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" className="max-w-xs">
-                                                      {transaction.additionalNotes}
-                                                    </TooltipContent>
-                                                  </Tooltip>
-                                                )}
+                                                <span className="text-muted-foreground hidden lg:inline">•</span>
+                                                <div className="flex items-center gap-1.5">
+                                                  <span className="text-muted-foreground truncate">
+                                                    {transaction.bill.description}
+                                                  </span>
+                                                  {transaction.additionalNotes && (
+                                                    <Tooltip>
+                                                      <TooltipTrigger asChild>
+                                                        <Info className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground cursor-help shrink-0" />
+                                                      </TooltipTrigger>
+                                                      <TooltipContent side="top" className="max-w-xs">
+                                                        {transaction.additionalNotes}
+                                                      </TooltipContent>
+                                                    </Tooltip>
+                                                  )}
+                                                </div>
                                               </div>
                                               <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap">
+                                                <span className="text-xs font-bold text-green-600 dark:text-green-400 whitespace-nowrap hidden lg:inline">
                                                   {formatCurrency(transaction.amount)}
                                                 </span>
                                                 <div className="flex gap-0.5">
@@ -454,15 +474,15 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                                         className="flex items-center justify-between rounded-lg bg-card border border-border/50 px-3 py-2 shadow-sm"
                                       >
                                         <div className="flex flex-col gap-0.5">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                              {formatCurrency(transaction.amount)}
-                                            </span>
+                                          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-2">
                                             <span className="text-xs text-muted-foreground whitespace-nowrap">
                                               {format(new Date(transaction.date), 'EEE dd/MM', { locale: enUS })}
                                             </span>
+                                            <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                                              {formatCurrency(transaction.amount)}
+                                            </span>
                                           </div>
-                                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                                             <span className="font-medium">{transaction.billFromWhichWithdraw?.description}</span>
                                             <span>→</span>
                                             <span className="font-medium">{transaction.bill?.description}</span>
