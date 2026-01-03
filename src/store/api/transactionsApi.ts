@@ -28,7 +28,7 @@ export const transactionsApi = apiSlice.injectEndpoints({
     // Get paginated transaction list
     getTransactionList: builder.query<PaginatedTransactionsResponse, PaginatedTransactionsRequest>({
       query: ({ pageIndex, pageSize }) =>
-        `/transaction/elenco-movimenti?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        `/transaction/list?pageIndex=${pageIndex}&pageSize=${pageSize}`,
       providesTags: ['Transactions'],
     }),
 

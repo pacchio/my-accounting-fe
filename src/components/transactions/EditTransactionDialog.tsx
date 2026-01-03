@@ -25,6 +25,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useUpdateTransactionMutation } from '@/store/api/transactionsApi';
 import { useGetDescriptionsQuery } from '@/store/api/descriptionsApi';
+import { useAppDispatch } from '@/store/hooks';
+import { updateTransaction as updateTransactionInStore } from '@/store/slices/transactionListSlice';
 import { OperationType, Transaction } from '@/types';
 import { format } from 'date-fns';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -51,6 +53,7 @@ export function EditTransactionDialog({
   onOpenChange,
   transaction,
 }: EditTransactionDialogProps) {
+  const dispatch = useAppDispatch();
   const [updateTransaction, { isLoading }] = useUpdateTransactionMutation();
   const { data: descriptions, isLoading: isLoadingDescriptions } = useGetDescriptionsQuery(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
@@ -82,7 +85,7 @@ export function EditTransactionDialog({
     if (!transaction) return;
 
     try {
-      await updateTransaction({
+      const updatedTransaction = await updateTransaction({
         id: data.id,
         type: transaction.type, // Keep original type
         amount: data.amount,
@@ -94,6 +97,14 @@ export function EditTransactionDialog({
           ? { id: transaction.billFromWhichWithdraw.id }
           : null, // Keep original source account
       }).unwrap();
+
+      // Update Redux store with the updated transaction
+      dispatch(updateTransactionInStore({
+        ...transaction,
+        amount: data.amount,
+        description: data.description || null,
+        additionalNotes: data.additionalNotes || null,
+      }));
 
       toast.success('Transaction updated successfully');
       onOpenChange(false);

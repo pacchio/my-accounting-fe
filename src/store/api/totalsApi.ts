@@ -2,7 +2,6 @@ import { apiSlice } from './apiSlice';
 import type {
   Total,
   TotalUpdateRequest,
-  TotalByDescriptionResponse,
   TotalByDescriptionByYearResponse,
 } from '@/types';
 
@@ -24,15 +23,21 @@ export const totalsApi = apiSlice.injectEndpoints({
       invalidatesTags: ['Totals'],
     }),
 
-    // Get totals by description (all time)
-    getTotalsByDescriptionAll: builder.query<TotalByDescriptionResponse, void>({
-      query: () => '/total-by-description-all',
+    // Get totals by description for specific year
+    getTotalsByDescription: builder.query<
+      TotalByDescriptionByYearResponse,
+      string | void
+    >({
+      query: (year) => `/total-by-description/${year}`,
       providesTags: ['Totals'],
     }),
 
-    // Get totals by description for a specific year
-    getTotalsByDescriptionByYear: builder.query<TotalByDescriptionByYearResponse, string>({
-      query: (year) => `/total-by-description/${year}`,
+    // Get totals by description all time
+    getTotalsByDescriptionAll: builder.query<
+      TotalByDescriptionByYearResponse[],
+      string | void
+    >({
+      query: () => '/total-by-description-all',
       providesTags: ['Totals'],
     }),
   }),
@@ -41,6 +46,6 @@ export const totalsApi = apiSlice.injectEndpoints({
 export const {
   useGetTotalsQuery,
   useUpdateTotalsMutation,
+  useGetTotalsByDescriptionQuery,
   useGetTotalsByDescriptionAllQuery,
-  useGetTotalsByDescriptionByYearQuery,
 } = totalsApi;

@@ -11,7 +11,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useDeleteTransactionMutation } from '@/store/api/transactionsApi';
-import { Transaction } from '@/types';
+import { useAppDispatch } from '@/store/hooks';
+import { removeTransaction } from '@/store/slices/transactionListSlice';
+import { OperationType, Transaction } from '@/types';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -27,6 +29,7 @@ export function DeleteTransactionDialog({
   onOpenChange,
   transaction,
 }: DeleteTransactionDialogProps) {
+  const dispatch = useAppDispatch();
   const [deleteTransaction, { isLoading }] = useDeleteTransactionMutation();
 
   const handleDelete = async () => {
@@ -34,6 +37,8 @@ export function DeleteTransactionDialog({
 
     try {
       await deleteTransaction(transaction.id).unwrap();
+      // Remove from Redux state
+      dispatch(removeTransaction(transaction.id));
       toast.success('Transaction deleted successfully');
       onOpenChange(false);
     } catch (error) {
@@ -64,9 +69,9 @@ export function DeleteTransactionDialog({
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Type:</span>
                 <span className="font-medium">
-                  {transaction.type === 'ENTRATA'
+                  {transaction.type === OperationType.INCOME
                     ? 'Income'
-                    : transaction.type === 'USCITA'
+                    : transaction.type === OperationType.EXPENSE
                     ? 'Expense'
                     : 'Withdrawal'}
                 </span>
