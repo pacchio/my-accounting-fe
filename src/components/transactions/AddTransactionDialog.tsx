@@ -38,7 +38,7 @@ import { useGetTotalsQuery } from '@/store/api/totalsApi';
 import { useGetDescriptionsQuery } from '@/store/api/descriptionsApi';
 import { OperationType } from '@/types';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { CalendarIcon, Check, ChevronsUpDown, ArrowUpCircle, ArrowDownCircle, ArrowLeftRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -65,6 +65,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const { data: descriptions, isLoading: isLoadingDescriptions, error: descriptionsError } = useGetDescriptionsQuery(false);
   const [createAnother, setCreateAnother] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
 
   const form = useForm<AddTransactionFormValues>({
     resolver: zodResolver(addTransactionSchema),
@@ -127,7 +128,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>New Transaction</DialogTitle>
           <DialogDescription>
@@ -265,9 +266,24 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={OperationType.INCOME}>Income</SelectItem>
-                        <SelectItem value={OperationType.EXPENSE}>Expense</SelectItem>
-                        <SelectItem value={OperationType.WITHDRAWAL}>Withdrawal</SelectItem>
+                        <SelectItem value={OperationType.INCOME}>
+                          <div className="flex items-center gap-2">
+                            <ArrowUpCircle className="h-4 w-4 text-green-600" />
+                            <span>Income</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value={OperationType.EXPENSE}>
+                          <div className="flex items-center gap-2">
+                            <ArrowDownCircle className="h-4 w-4 text-red-600" />
+                            <span>Expense</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value={OperationType.WITHDRAWAL}>
+                          <div className="flex items-center gap-2">
+                            <ArrowLeftRight className="h-4 w-4 text-blue-600" />
+                            <span>Withdrawal</span>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -316,7 +332,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 render={({ field }) => (
                   <FormItem className="w-full flex flex-col">
                     <FormLabel>Date</FormLabel>
-                    <Popover>
+                    <Popover open={dateOpen} onOpenChange={setDateOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -339,9 +355,12 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                          initialFocus
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setDateOpen(false);
+                          }}
+                          disabled={(date) => date < new Date('1900-01-01')}
+                          autoFocus
                         />
                       </PopoverContent>
                     </Popover>

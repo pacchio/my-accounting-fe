@@ -206,8 +206,12 @@ export function TransactionFilters({
           </div>
         </div>
 
-        {/* Filter Options */}
-        {isExpanded && (
+        {/* Filter Options - Animated */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
+        >
           <div className="space-y-3 pt-2">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {/* Years */}
@@ -280,7 +284,7 @@ export function TransactionFilters({
               </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </Card>
   );

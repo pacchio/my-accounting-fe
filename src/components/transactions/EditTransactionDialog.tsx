@@ -104,7 +104,7 @@ export function EditTransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Edit Transaction</DialogTitle>
           <DialogDescription>
@@ -159,6 +159,7 @@ export function EditTransactionDialog({
                       type="number"
                       step="0.01"
                       placeholder="0.00"
+                      autoFocus={false}
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value))}
                     />
