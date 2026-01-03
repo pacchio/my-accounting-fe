@@ -6,11 +6,13 @@ import React, { useState, useCallback, memo } from 'react';
 const AnimatedCollapse = memo(({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
   return (
     <div
-      className={`overflow-hidden transition-all duration-300 ease-in-out ${
-        isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+      className={`grid transition-all duration-300 ease-in-out ${
+        isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
       }`}
     >
-      {children}
+      <div className="overflow-hidden">
+        {children}
+      </div>
     </div>
   );
 });

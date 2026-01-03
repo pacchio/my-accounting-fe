@@ -85,17 +85,6 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
     ? descriptions.filter((desc) => desc.type === selectedType)
     : [];
 
-  // Debug descriptions
-  console.log('Descriptions API:', {
-    data: descriptions,
-    isLoading: isLoadingDescriptions,
-    error: descriptionsError,
-    isArray: Array.isArray(descriptions),
-    length: descriptions?.length,
-    filteredLength: filteredDescriptions.length,
-    selectedType,
-  });
-
   const onSubmit = async (data: AddTransactionFormValues) => {
     try {
       await addTransaction({
@@ -105,7 +94,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         additionalNotes: data.additionalNotes || null,
         date: data.date,
         bill: { id: data.billId },
-        billFromWhichWithdraw: data.billFromWhichWithdrawId
+        billFromWhichWithdraw: data.type === OperationType.WITHDRAWAL && data.billFromWhichWithdrawId
           ? { id: data.billFromWhichWithdrawId }
           : null,
       }).unwrap();
