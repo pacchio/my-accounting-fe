@@ -82,8 +82,8 @@ export function AccountsChart({ totals, totalBalance }: AccountsChartProps) {
   }));
 
   return (
-    <Card className="h-50">
-      <CardContent className="p-2 h-full">
+    <Card className="h-40 p-0">
+      <CardContent className="p-0 h-full">
         <div className="relative w-full h-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
@@ -91,8 +91,8 @@ export function AccountsChart({ totals, totalBalance }: AccountsChartProps) {
                 data={chartData}
                 cx="50%"
                 cy="50%"
-                innerRadius={40}
-                outerRadius={65}
+                innerRadius={45}
+                outerRadius={70}
                 paddingAngle={2}
                 dataKey="value"
               >

@@ -15,7 +15,7 @@ import type { TransactionsByYear } from '@/types';
 
 interface TrendChartProps {
   data: TransactionsByYear[];
-  chartType: 'GUADAGNI' | 'ENTRATE' | 'USCITE';
+  chartType: 'PROFIT' | 'INCOME' | 'EXPENSES';
 }
 
 export function TrendChart({ data, chartType }: TrendChartProps) {
@@ -41,33 +41,33 @@ export function TrendChart({ data, chartType }: TrendChartProps) {
 
     return {
       year: yearData.year,
-      guadagni: profit,
-      entrate: earnings,
-      uscite: expenses,
+      profit: profit,
+      income: earnings,
+      expenses: expenses,
     };
   });
 
   const getChartConfig = () => {
     switch (chartType) {
-      case 'GUADAGNI':
+      case 'PROFIT':
         return {
-          dataKey: 'guadagni',
+          dataKey: 'profit',
           stroke: '#8b5cf6',
-          name: 'Guadagni',
+          name: 'Profit',
           fill: '#8b5cf6',
         };
-      case 'ENTRATE':
+      case 'INCOME':
         return {
-          dataKey: 'entrate',
+          dataKey: 'income',
           stroke: '#22c55e',
-          name: 'Entrate',
+          name: 'Income',
           fill: '#22c55e',
         };
-      case 'USCITE':
+      case 'EXPENSES':
         return {
-          dataKey: 'uscite',
+          dataKey: 'expenses',
           stroke: '#ef4444',
-          name: 'Uscite',
+          name: 'Expenses',
           fill: '#ef4444',
         };
     }
@@ -88,7 +88,7 @@ export function TrendChart({ data, chartType }: TrendChartProps) {
             />
             <Tooltip
               formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
-              labelFormatter={(label) => `Anno ${label}`}
+              labelFormatter={(label) => `Year ${label}`}
             />
             <Legend />
             <Line
@@ -105,94 +105,94 @@ export function TrendChart({ data, chartType }: TrendChartProps) {
 
         {/* Summary Statistics */}
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {chartType === 'GUADAGNI' && (
+          {chartType === 'PROFIT' && (
             <>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Media Guadagni</p>
+                <p className="text-sm text-muted-foreground">Average Profit</p>
                 <p className="text-2xl font-bold text-purple-600">
                   {formatCurrency(
-                    chartData.reduce((sum, item) => sum + item.guadagni, 0) /
+                    chartData.reduce((sum, item) => sum + item.profit, 0) /
                       chartData.length
                   )}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
                 <p className="text-sm text-muted-foreground">
-                  Miglior Anno
+                  Best Year
                 </p>
                 <p className="text-2xl font-bold text-green-600">
                   {
                     chartData.reduce((max, item) =>
-                      item.guadagni > max.guadagni ? item : max
+                      item.profit > max.profit ? item : max
                     ).year
                   }
                 </p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Peggiore Anno</p>
+                <p className="text-sm text-muted-foreground">Worst Year</p>
                 <p className="text-2xl font-bold text-red-600">
                   {
                     chartData.reduce((min, item) =>
-                      item.guadagni < min.guadagni ? item : min
+                      item.profit < min.profit ? item : min
                     ).year
                   }
                 </p>
               </div>
             </>
           )}
-          {chartType === 'ENTRATE' && (
+          {chartType === 'INCOME' && (
             <>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Media Entrate</p>
+                <p className="text-sm text-muted-foreground">Average Income</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(
-                    chartData.reduce((sum, item) => sum + item.entrate, 0) /
+                    chartData.reduce((sum, item) => sum + item.income, 0) /
                       chartData.length
                   )}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Massimo</p>
+                <p className="text-sm text-muted-foreground">Maximum</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(
-                    Math.max(...chartData.map((item) => item.entrate))
+                    Math.max(...chartData.map((item) => item.income))
                   )}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Minimo</p>
+                <p className="text-sm text-muted-foreground">Minimum</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(
-                    Math.min(...chartData.map((item) => item.entrate))
+                    Math.min(...chartData.map((item) => item.income))
                   )}
                 </p>
               </div>
             </>
           )}
-          {chartType === 'USCITE' && (
+          {chartType === 'EXPENSES' && (
             <>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Media Uscite</p>
+                <p className="text-sm text-muted-foreground">Average Expenses</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(
-                    chartData.reduce((sum, item) => sum + item.uscite, 0) /
+                    chartData.reduce((sum, item) => sum + item.expenses, 0) /
                       chartData.length
                   )}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Massimo</p>
+                <p className="text-sm text-muted-foreground">Maximum</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(
-                    Math.max(...chartData.map((item) => item.uscite))
+                    Math.max(...chartData.map((item) => item.expenses))
                   )}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-sm text-muted-foreground">Minimo</p>
+                <p className="text-sm text-muted-foreground">Minimum</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(
-                    Math.min(...chartData.map((item) => item.uscite))
+                    Math.min(...chartData.map((item) => item.expenses))
                   )}
                 </p>
               </div>

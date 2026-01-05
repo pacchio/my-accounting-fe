@@ -13,16 +13,16 @@ import { Loader2 } from 'lucide-react';
 import { useGetAllTransactionsQuery } from '@/store/api/transactionsApi';
 import { TrendChart } from '@/components/transactions/TrendChart';
 
-type ChartType = 'GUADAGNI' | 'ENTRATE' | 'USCITE';
+type ChartType = 'PROFIT' | 'INCOME' | 'EXPENSES';
 
 const chartTypes: { value: ChartType; label: string }[] = [
-  { value: 'GUADAGNI', label: 'Guadagni' },
-  { value: 'ENTRATE', label: 'Entrate' },
-  { value: 'USCITE', label: 'Uscite' },
+  { value: 'PROFIT', label: 'Profit' },
+  { value: 'INCOME', label: 'Income' },
+  { value: 'EXPENSES', label: 'Expenses' },
 ];
 
 export default function TrendPage() {
-  const [chartType, setChartType] = useState<ChartType>('GUADAGNI');
+  const [chartType, setChartType] = useState<ChartType>('PROFIT');
 
   const { data, isLoading } = useGetAllTransactionsQuery();
 
@@ -30,9 +30,9 @@ export default function TrendPage() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Andamento</CardTitle>
+          <CardTitle>Trend Analysis</CardTitle>
           <CardDescription>
-            Visualizza l&apos;andamento delle transazioni nel tempo
+            View transaction trends over time
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -43,7 +43,7 @@ export default function TrendPage() {
           ) : !data || data.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-sm text-muted-foreground">
-                Non è presente alcuna transazione
+                No transactions found
               </p>
             </div>
           ) : (
@@ -55,7 +55,7 @@ export default function TrendPage() {
                   onValueChange={(value) => setChartType(value as ChartType)}
                 >
                   <SelectTrigger className="w-50">
-                    <SelectValue placeholder="Seleziona tipo" />
+                    <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
                     {chartTypes.map((type) => (

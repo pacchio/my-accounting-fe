@@ -7,17 +7,17 @@ import { List, PieChart, TrendingUp } from 'lucide-react';
 
 const navItems = [
   {
-    title: 'Elenco Movimenti',
+    title: 'Transaction List',
     href: '/transactions/list',
     icon: List,
   },
   {
-    title: 'Contabilità Annuale',
+    title: 'Annual Accounting',
     href: '/transactions/annual-accounting',
     icon: PieChart,
   },
   {
-    title: 'Andamento',
+    title: 'Trend Analysis',
     href: '/transactions/trend',
     icon: TrendingUp,
   },
@@ -35,7 +35,7 @@ export default function TransactionsLayout({
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 flex-shrink-0">
         <div className="sticky top-20 space-y-1 rounded-lg border bg-card p-4 hidden md:block">
-          <h2 className="mb-4 px-2 text-lg font-semibold">Transazioni</h2>
+          <h2 className="mb-4 px-2 text-lg font-semibold">Transactions</h2>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;

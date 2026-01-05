@@ -69,11 +69,11 @@ export function TransactionsList({ data: transactionsByYear, isLoading }: Transa
   const getTypeLabel = (type: OperationType) => {
     switch (type) {
       case OperationType.INCOME:
-        return 'Entrata';
+        return 'Income';
       case OperationType.EXPENSE:
-        return 'Uscita';
+        return 'Expense';
       case OperationType.WITHDRAWAL:
-        return 'Prelievo';
+        return 'Withdrawal';
     }
   };
 
@@ -93,7 +93,7 @@ export function TransactionsList({ data: transactionsByYear, isLoading }: Transa
     return (
       <Card className="p-6">
         <p className="text-center text-sm text-muted-foreground">
-          Nessuna transazione trovata. Aggiungi la tua prima transazione!
+          No transactions found. Add your first transaction!
         </p>
       </Card>
     );

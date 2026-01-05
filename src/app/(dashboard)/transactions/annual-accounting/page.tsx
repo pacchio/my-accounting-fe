@@ -52,9 +52,9 @@ export default function AnnualAccountingPage() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Contabilità Annuale</CardTitle>
+          <CardTitle>Annual Accounting</CardTitle>
           <CardDescription>
-            Visualizza le statistiche annuali delle tue transazioni per categoria
+            View annual statistics of your transactions by category
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,7 +65,7 @@ export default function AnnualAccountingPage() {
           ) : !allYearsData || allYearsData.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-sm text-muted-foreground">
-                Non è presente alcuna transazione
+                No transactions found
               </p>
             </div>
           ) : (
@@ -74,7 +74,7 @@ export default function AnnualAccountingPage() {
               <div className="flex justify-center">
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
                   <SelectTrigger className="w-50">
-                    <SelectValue placeholder="Seleziona anno" />
+                    <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
                     {years.map((year: string) => (

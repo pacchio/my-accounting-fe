@@ -109,9 +109,9 @@ export default function TransactionListPage() {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Elenco Movimenti</CardTitle>
+            <CardTitle>Transaction List</CardTitle>
             <CardDescription>
-              Vedi tutte le transazioni in ordine temporale
+              View all transactions in chronological order
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -122,7 +122,7 @@ export default function TransactionListPage() {
             ) : transactions.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-sm text-muted-foreground">
-                  Non è presente alcuna transazione
+                  No transactions found
                 </p>
               </div>
             ) : (
@@ -136,12 +136,12 @@ export default function TransactionListPage() {
                         {/* Sticky Header */}
                         <TableHeader className="sticky top-0 z-10 bg-muted/90 backdrop-blur supports-[backdrop-filter]:bg-muted/60">
                           <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-20 font-semibold">Data</TableHead>
-                            <TableHead className="w-12 text-center font-semibold">Tipo</TableHead>
-                            <TableHead className="w-28 text-right font-semibold">Importo</TableHead>
-                            <TableHead className="min-w-[200px] font-semibold">Descrizione</TableHead>
-                            <TableHead className="w-32 font-semibold">Conto</TableHead>
-                            <TableHead className="w-20 text-center font-semibold">Azioni</TableHead>
+                            <TableHead className="w-20 font-semibold">Date</TableHead>
+                            <TableHead className="w-12 text-center font-semibold">Type</TableHead>
+                            <TableHead className="w-28 text-right font-semibold">Amount</TableHead>
+                            <TableHead className="min-w-[200px] font-semibold">Description</TableHead>
+                            <TableHead className="w-32 font-semibold">Account</TableHead>
+                            <TableHead className="w-20 text-center font-semibold">Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         {/* Scrollable Body */}

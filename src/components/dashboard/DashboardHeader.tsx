@@ -59,7 +59,7 @@ export function DashboardHeader() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 content-start">
           {/* Individual Account Cards - Ultra Compact */}
           {totals?.map((total) => (
-            <Card key={total.id} className="sm:h-24 py-2 hover:border-primary/50 transition-colors">
+            <Card key={total.id} className="sm:h-19 py-2 hover:border-primary/50 transition-colors">
               <CardContent className="p-1.5 sm:p-2 px-4 sm:px-4 h-full flex items-center">
                 <div className="space-y-0 w-full">
                   <p className="text-xs text-muted-foreground truncate leading-tight">

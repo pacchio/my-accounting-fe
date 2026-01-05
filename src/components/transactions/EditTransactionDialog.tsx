@@ -55,7 +55,7 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const dispatch = useAppDispatch();
   const [updateTransaction, { isLoading }] = useUpdateTransactionMutation();
-  const { data: descriptions, isLoading: isLoadingDescriptions } = useGetDescriptionsQuery(false);
+  const { data: descriptions, isLoading: isLoadingDescriptions } = useGetDescriptionsQuery(true);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
 
   const form = useForm<EditTransactionFormValues>({

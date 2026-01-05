@@ -62,7 +62,7 @@ interface AddTransactionDialogProps {
 export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialogProps) {
   const [addTransaction, { isLoading }] = useAddTransactionMutation();
   const { data: totals } = useGetTotalsQuery();
-  const { data: descriptions, isLoading: isLoadingDescriptions, error: descriptionsError } = useGetDescriptionsQuery(false);
+  const { data: descriptions, isLoading: isLoadingDescriptions, error: descriptionsError } = useGetDescriptionsQuery(true);
   const [createAnother, setCreateAnother] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);

@@ -58,7 +58,7 @@ export function AnnualAccountingCharts({ data }: AnnualAccountingChartsProps) {
       {/* Expense Charts */}
       <Card className="flex flex-col h-full">
         <CardHeader>
-          <CardTitle className="text-red-600">Uscite per Categoria</CardTitle>
+          <CardTitle className="text-red-600">Expenses by Category</CardTitle>
         </CardHeader>
         <CardContent className="pb-6">
           <ResponsiveContainer width="100%" height={250} debounce={50}>
@@ -89,7 +89,7 @@ export function AnnualAccountingCharts({ data }: AnnualAccountingChartsProps) {
       {/* Income Charts */}
       <Card className="flex flex-col h-full">
         <CardHeader>
-          <CardTitle className="text-green-600">Entrate per Categoria</CardTitle>
+          <CardTitle className="text-green-600">Income by Category</CardTitle>
         </CardHeader>
         <CardContent className="pb-6">
           <ResponsiveContainer width="100%" height={250} debounce={50}>

@@ -35,15 +35,15 @@ export function AnnualAccountingTable({ data }: AnnualAccountingTableProps) {
       {/* Expenses Table */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-2 px-3 sm:px-6">
-          <CardTitle className="text-red-600 text-sm sm:text-base">Dettaglio Uscite</CardTitle>
+          <CardTitle className="text-red-600 text-sm sm:text-base">Expenses Detail</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="w-full">
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="h-9 px-2 sm:px-4 text-xs sm:text-sm">Categoria</TableHead>
-                  <TableHead className="h-9 px-2 sm:px-4 text-right text-xs sm:text-sm w-20 sm:w-28">Totale</TableHead>
+                  <TableHead className="h-9 px-2 sm:px-4 text-xs sm:text-sm">Category</TableHead>
+                  <TableHead className="h-9 px-2 sm:px-4 text-right text-xs sm:text-sm w-20 sm:w-28">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -58,7 +58,7 @@ export function AnnualAccountingTable({ data }: AnnualAccountingTableProps) {
                   </TableRow>
                 ))}
                 <TableRow className="font-bold bg-muted/50">
-                  <TableCell className="py-2 px-2 sm:px-4 text-xs sm:text-sm">Totale Uscite</TableCell>
+                  <TableCell className="py-2 px-2 sm:px-4 text-xs sm:text-sm">Total Expenses</TableCell>
                   <TableCell className="py-2 px-2 sm:px-4 text-right text-red-600 text-xs sm:text-base whitespace-nowrap font-bold">
                     {formatCurrency(Math.abs(data.totalExpense))}
                   </TableCell>
@@ -72,15 +72,15 @@ export function AnnualAccountingTable({ data }: AnnualAccountingTableProps) {
       {/* Income Table */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-2 px-3 sm:px-6">
-          <CardTitle className="text-green-600 text-sm sm:text-base">Dettaglio Entrate</CardTitle>
+          <CardTitle className="text-green-600 text-sm sm:text-base">Income Detail</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="w-full">
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="h-9 px-2 sm:px-4 text-xs sm:text-sm">Categoria</TableHead>
-                  <TableHead className="h-9 px-2 sm:px-4 text-right text-xs sm:text-sm w-20 sm:w-28">Totale</TableHead>
+                  <TableHead className="h-9 px-2 sm:px-4 text-xs sm:text-sm">Category</TableHead>
+                  <TableHead className="h-9 px-2 sm:px-4 text-right text-xs sm:text-sm w-20 sm:w-28">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,7 +95,7 @@ export function AnnualAccountingTable({ data }: AnnualAccountingTableProps) {
                   </TableRow>
                 ))}
                 <TableRow className="font-bold bg-muted/50">
-                  <TableCell className="py-2 px-2 sm:px-4 text-xs sm:text-sm">Totale Entrate</TableCell>
+                  <TableCell className="py-2 px-2 sm:px-4 text-xs sm:text-sm">Total Income</TableCell>
                   <TableCell className="py-2 px-2 sm:px-4 text-right text-green-600 text-xs sm:text-base whitespace-nowrap font-bold">
                     {formatCurrency(Math.abs(data.totalEarning))}
                   </TableCell>

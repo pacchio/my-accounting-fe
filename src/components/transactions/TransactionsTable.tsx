@@ -314,7 +314,7 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
   return (
     <div className="space-y-6">
       {transactionsByYear.map((yearData) => (
-        <Card key={yearData.year}>
+        <Card key={yearData.year} className="p-0 gap-2">
           {/* Year Header */}
           <div className="border-b bg-muted/50 px-6 py-3">
             <h3 className="text-xl font-bold text-primary">{yearData.year}</h3>
