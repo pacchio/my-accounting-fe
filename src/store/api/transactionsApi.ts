@@ -99,6 +99,7 @@ export const transactionsApi = apiSlice.injectEndpoints({
 
 export const {
   useGetAllTransactionsQuery,
+  useLazyGetAllTransactionsQuery,
   useGetTransactionYearsQuery,
   useGetTransactionListQuery,
   useGetTransactionByIdQuery,

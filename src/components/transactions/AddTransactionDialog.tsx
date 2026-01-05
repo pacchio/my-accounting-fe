@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useCallback, useMemo, useState } from 'react';
+import { ControllerRenderProps, FieldValues, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -57,12 +57,17 @@ type AddTransactionFormValues = z.infer<typeof addTransactionSchema>;
 interface AddTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTransactionAdded?: (transaction: { date: Date; description: string | null; type: OperationType }, scrollTo?: boolean) => void;
 }
 
-export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialogProps) {
-  const [addTransaction, { isLoading }] = useAddTransactionMutation();
-  const { data: totals } = useGetTotalsQuery();
-  const { data: descriptions, isLoading: isLoadingDescriptions, error: descriptionsError } = useGetDescriptionsQuery(true);
+export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: AddTransactionDialogProps) {
+  const [addTransaction, {isLoading}] = useAddTransactionMutation();
+  const {data: totals} = useGetTotalsQuery();
+  const {
+    data: descriptions,
+    isLoading: isLoadingDescriptions,
+    error: descriptionsError
+  } = useGetDescriptionsQuery(true);
   const [createAnother, setCreateAnother] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
@@ -81,9 +86,11 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
   const isWithdrawal = selectedType === OperationType.WITHDRAWAL;
 
   // Filter descriptions by type
-  const filteredDescriptions = Array.isArray(descriptions)
-    ? descriptions.filter((desc) => desc.type === selectedType)
-    : [];
+  const descriptionsByType = useMemo(() => (selectedType === OperationType.INCOME ?
+      descriptions?.earningDescription :
+      selectedType === OperationType.EXPENSE ?
+        descriptions?.expenseDescription : []) || [],
+    [descriptions, selectedType]);
 
   const onSubmit = async (data: AddTransactionFormValues) => {
     try {
@@ -93,9 +100,9 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         description: data.description || null,
         additionalNotes: data.additionalNotes || null,
         date: data.date,
-        bill: { id: data.billId },
+        bill: {id: data.billId},
         billFromWhichWithdraw: data.type === OperationType.WITHDRAWAL && data.billFromWhichWithdrawId
-          ? { id: data.billFromWhichWithdrawId }
+          ? {id: data.billFromWhichWithdrawId}
           : null,
       }).unwrap();
 
@@ -110,10 +117,25 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
         form.reset();
         onOpenChange(false);
       }
+      // Trigger refetch and expand/scroll after dialog closes
+      if (onTransactionAdded) {
+        onTransactionAdded({
+          date: data.date,
+          description: data.description || null,
+          type: data.type,
+        }, !createAnother);
+      }
     } catch (error) {
       toast.error('Error adding transaction');
     }
   };
+
+  const filterDescriptionsByTerm = useCallback((term: string | undefined) => {
+    return descriptionsByType
+      .filter((desc) =>
+        desc.description.toLowerCase().includes((term || '').toLowerCase())
+      );
+  }, [descriptionsByType]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,7 +155,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               <FormField
                 control={form.control}
                 name="amount"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="w-full">
                     <FormLabel>Amount (€)</FormLabel>
                     <FormControl>
@@ -146,7 +168,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                         onChange={(e) => field.onChange(parseFloat(e.target.value))}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -156,7 +178,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 <FormField
                   control={form.control}
                   name="description"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem className="w-full flex flex-col">
                       <FormLabel>Description</FormLabel>
                       <Popover open={descriptionOpen} onOpenChange={setDescriptionOpen}>
@@ -171,7 +193,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                               )}
                             >
                               {field.value || 'Select or type description'}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
@@ -182,7 +204,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                               value={field.value}
                               onValueChange={field.onChange}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter' && field.value) {
+                                if (e.key === 'Enter' && field.value && !filterDescriptionsByTerm(field.value)?.length) {
                                   e.preventDefault();
                                   field.onChange(field.value.toUpperCase());
                                   setDescriptionOpen(false);
@@ -196,17 +218,15 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                                 ) : field.value ? (
                                   <div className="py-6 text-center text-sm">
                                     <p>No results found.</p>
-                                    <p className="text-muted-foreground">Press Enter to use &quot;{field.value}&quot;</p>
+                                    <p className="text-muted-foreground">Press Enter to
+                                      use &quot;{field.value}&quot;</p>
                                   </div>
                                 ) : (
                                   'Type to search or create new'
                                 )}
                               </CommandEmpty>
                               <CommandGroup>
-                                {filteredDescriptions
-                                  .filter((desc) =>
-                                    desc.description.toLowerCase().includes((field.value || '').toLowerCase())
-                                  )
+                                {filterDescriptionsByTerm(field.value)
                                   .map((desc) => (
                                     <CommandItem
                                       key={desc.id}
@@ -230,7 +250,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                           </Command>
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -245,37 +265,37 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               <FormField
                 control={form.control}
                 name="type"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="w-full">
                     <FormLabel>Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Select type"/>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value={OperationType.INCOME}>
                           <div className="flex items-center gap-2">
-                            <ArrowUpCircle className="h-4 w-4 text-green-600" />
+                            <ArrowUpCircle className="h-4 w-4 text-green-600"/>
                             <span>Income</span>
                           </div>
                         </SelectItem>
                         <SelectItem value={OperationType.EXPENSE}>
                           <div className="flex items-center gap-2">
-                            <ArrowDownCircle className="h-4 w-4 text-red-600" />
+                            <ArrowDownCircle className="h-4 w-4 text-red-600"/>
                             <span>Expense</span>
                           </div>
                         </SelectItem>
                         <SelectItem value={OperationType.WITHDRAWAL}>
                           <div className="flex items-center gap-2">
-                            <ArrowLeftRight className="h-4 w-4 text-blue-600" />
+                            <ArrowLeftRight className="h-4 w-4 text-blue-600"/>
                             <span>Withdrawal</span>
                           </div>
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -284,7 +304,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               <FormField
                 control={form.control}
                 name="billId"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="w-full">
                     <FormLabel>
                       {isWithdrawal ? 'Destination Account' : 'Account'}
@@ -295,18 +315,21 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                     >
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select account" />
+                          <SelectValue placeholder="Select account"/>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {totals?.map((total) => (
                           <SelectItem key={total.id} value={total.id.toString()}>
-                            {total.description} ({new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(total.amount)})
+                            {total.description} ({new Intl.NumberFormat('it-IT', {
+                            style: 'currency',
+                            currency: 'EUR'
+                          }).format(total.amount)})
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -318,7 +341,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
               <FormField
                 control={form.control}
                 name="date"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="w-full flex flex-col">
                     <FormLabel>Date</FormLabel>
                     <Popover open={dateOpen} onOpenChange={setDateOpen}>
@@ -336,7 +359,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                             ) : (
                               <span>Select date</span>
                             )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -353,7 +376,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}
               />
@@ -363,7 +386,7 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                 <FormField
                   control={form.control}
                   name="billFromWhichWithdrawId"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem className="w-full">
                       <FormLabel>Source Account</FormLabel>
                       <Select
@@ -372,18 +395,21 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select source account" />
+                            <SelectValue placeholder="Select source account"/>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {totals?.map((total) => (
                             <SelectItem key={total.id} value={total.id.toString()}>
-                              {total.description} ({new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(total.amount)})
+                              {total.description} ({new Intl.NumberFormat('it-IT', {
+                              style: 'currency',
+                              currency: 'EUR'
+                            }).format(total.amount)})
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -396,13 +422,13 @@ export function AddTransactionDialog({ open, onOpenChange }: AddTransactionDialo
             <FormField
               control={form.control}
               name="additionalNotes"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem className="w-full">
                   <FormLabel>Additional Notes (optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="Notes..." className="w-full" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage/>
                 </FormItem>
               )}
             />

@@ -4,16 +4,9 @@ import type { Description, DescriptionsResponse, UpdateDescriptionRequest } from
 export const descriptionsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all descriptions (with optional occurrence counts)
-    getDescriptions: builder.query<Description[], boolean>({
+    getDescriptions: builder.query<DescriptionsResponse, boolean>({
       query: (withOccurrences = false) => `/description-list?occurrences=${withOccurrences}`,
       providesTags: ['Descriptions'],
-      transformResponse: (response: DescriptionsResponse) => {
-        // Combine earningDescription and expenseDescription into a single array
-        return [
-          ...response.earningDescription,
-          ...response.expenseDescription,
-        ];
-      },
     }),
 
     // Update description

@@ -46,12 +46,14 @@ interface EditTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: Transaction | null;
+  onTransactionEdited?: (transaction: { date: Date; description: string | null; type: OperationType }) => void;
 }
 
 export function EditTransactionDialog({
   open,
   onOpenChange,
   transaction,
+  onTransactionEdited,
 }: EditTransactionDialogProps) {
   const dispatch = useAppDispatch();
   const [updateTransaction, { isLoading }] = useUpdateTransactionMutation();
@@ -108,6 +110,15 @@ export function EditTransactionDialog({
 
       toast.success('Transaction updated successfully');
       onOpenChange(false);
+
+      // Trigger refetch and expand/scroll after dialog closes
+      if (onTransactionEdited) {
+        onTransactionEdited({
+          date: new Date(transaction.date),
+          description: data.description || null,
+          type: transaction.type,
+        });
+      }
     } catch (error) {
       toast.error('Error updating transaction');
     }

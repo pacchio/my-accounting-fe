@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useImperativeHandle, forwardRef } from 'react';
 
 // Animated collapse - pure CSS animation without setState in effects
 const AnimatedCollapse = memo(({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) => {
@@ -34,7 +34,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Transaction, TransactionsByYear } from '@/types';
+import { Transaction, TransactionsByYear, OperationType } from '@/types';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { EditTransactionDialog } from './EditTransactionDialog';
@@ -131,7 +131,7 @@ interface TransactionGroupProps {
 const TransactionGroup = memo(({
   group, descKey, isExpanded, colorClass, onToggle, onDeleteGroup, onEdit, onDelete, formatCurrency
 }: TransactionGroupProps) => (
-  <div className="space-y-1.5">
+  <div id={`desc-${descKey}`} className="space-y-1.5">
     <div
       className="flex items-center gap-2 rounded-lg bg-card border border-border/50 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-all shadow-sm"
       onClick={(e) => onToggle(descKey, e)}
@@ -218,9 +218,15 @@ WithdrawalItem.displayName = 'WithdrawalItem';
 interface TransactionsTableProps {
   data?: TransactionsByYear[];
   isLoading?: boolean;
+  onRefetchTransactions?: () => void;
 }
 
-export function TransactionsTable({ data: transactionsByYear, isLoading }: TransactionsTableProps) {
+export interface TransactionsTableRef {
+  expandAndScrollToTransaction: (date: Date, description: string | null, type: OperationType) => void;
+}
+
+export const TransactionsTable = forwardRef<TransactionsTableRef, TransactionsTableProps>(
+  function TransactionsTable({ data: transactionsByYear, isLoading, onRefetchTransactions }, ref) {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -253,6 +259,13 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
         newExpanded.delete(monthKey);
       } else {
         newExpanded.add(monthKey);
+        // Scroll to the expanded month after state updates
+        setTimeout(() => {
+          const element = document.getElementById(`month-${monthKey}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200); // Small delay for animation to start
       }
       return newExpanded;
     });
@@ -266,10 +279,46 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
         newExpanded.delete(descriptionKey);
       } else {
         newExpanded.add(descriptionKey);
+        /*
+        // Scroll to the expanded description after state updates
+        setTimeout(() => {
+          const element = document.getElementById(`desc-${descriptionKey}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 150); // Small delay for animation to start
+        */
       }
       return newExpanded;
     });
   }, []);
+
+  // Expose method to parent via ref for auto-expand and scroll
+  useImperativeHandle(ref, () => ({
+    expandAndScrollToTransaction: (date: Date, description: string | null, type: OperationType) => {
+      const year = date.getFullYear().toString();
+      const month = (date.getMonth() + 1).toString();
+      const monthKey = `${year}-${month}`;
+
+      const typePrefix = type === OperationType.INCOME ? 'income' :
+                         type === OperationType.EXPENSE ? 'expense' : 'withdrawal';
+      const descKey = `${typePrefix}-${monthKey}-${description || ''}`;
+
+      setExpandedMonths(prev => new Set(prev).add(monthKey));
+      setExpandedDescriptions(prev => new Set(prev).add(descKey));
+
+      setTimeout(() => {
+        const element = document.getElementById(descKey);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+          }, 2000);
+        }
+      }, 350);
+    },
+  }), []);
 
   // Memoized formatCurrency to prevent re-creation
   const formatCurrency = useCallback((amount: number) => {
@@ -358,6 +407,7 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
                   <React.Fragment key={monthKey}>
                     {/* Month Summary Row */}
                     <TableRow
+                      id={`month-${monthKey}`}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleMonth(monthKey)}
                     >
@@ -566,12 +616,31 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         transaction={selectedTransaction}
+        onTransactionEdited={(transaction) => {
+          // Refetch transactions after edit
+          onRefetchTransactions?.();
+
+          // Then expand and scroll
+          if (ref && typeof ref === 'object' && ref.current) {
+            setTimeout(() => {
+              ref.current?.expandAndScrollToTransaction(
+                transaction.date,
+                transaction.description,
+                transaction.type
+              );
+            }, 500);
+          }
+        }}
       />
 
       <DeleteTransactionDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         transaction={selectedTransaction}
+        onTransactionDeleted={() => {
+          // Refetch transactions after delete
+          onRefetchTransactions?.();
+        }}
       />
 
       <DeleteGroupDialog
@@ -579,7 +648,11 @@ export function TransactionsTable({ data: transactionsByYear, isLoading }: Trans
         onOpenChange={setIsDeleteGroupDialogOpen}
         transactions={selectedGroup?.transactions || []}
         description={selectedGroup?.description || ''}
+        onGroupDeleted={() => {
+          // Refetch transactions after group delete
+          onRefetchTransactions?.();
+        }}
       />
     </div>
   );
-}
+});

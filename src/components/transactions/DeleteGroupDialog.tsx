@@ -19,6 +19,7 @@ interface DeleteGroupDialogProps {
   onOpenChange: (open: boolean) => void;
   transactions: Transaction[];
   description: string;
+  onGroupDeleted?: () => void;
 }
 
 export function DeleteGroupDialog({
@@ -26,6 +27,7 @@ export function DeleteGroupDialog({
   onOpenChange,
   transactions,
   description,
+  onGroupDeleted,
 }: DeleteGroupDialogProps) {
   const [deleteTransactionList, { isLoading }] = useDeleteTransactionListMutation();
 
@@ -47,6 +49,9 @@ export function DeleteGroupDialog({
       await deleteTransactionList(deleteItems).unwrap();
       toast.success(`${transactions.length} transactions deleted successfully`);
       onOpenChange(false);
+
+      // Trigger refetch
+      onGroupDeleted?.();
     } catch (error) {
       toast.error('Error deleting transactions');
     }

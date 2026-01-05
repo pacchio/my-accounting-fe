@@ -22,12 +22,14 @@ interface DeleteTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: Transaction | null;
+  onTransactionDeleted?: () => void;
 }
 
 export function DeleteTransactionDialog({
   open,
   onOpenChange,
   transaction,
+  onTransactionDeleted,
 }: DeleteTransactionDialogProps) {
   const dispatch = useAppDispatch();
   const [deleteTransaction, { isLoading }] = useDeleteTransactionMutation();
@@ -41,6 +43,9 @@ export function DeleteTransactionDialog({
       dispatch(removeTransaction(transaction.id));
       toast.success('Transaction deleted successfully');
       onOpenChange(false);
+
+      // Trigger refetch
+      onTransactionDeleted?.();
     } catch (error) {
       toast.error('Error deleting transaction');
     }
