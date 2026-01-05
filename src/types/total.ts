@@ -5,6 +5,8 @@ export interface Total {
   amount: number;
   description: string;
   canDelete: boolean;
+  isActive?: boolean;
+  deletedAt?: string | null;
 }
 
 export interface TotalUpdateRequest {
