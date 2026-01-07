@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -21,20 +21,21 @@ interface DescriptionTableProps {
   type: OperationType;
 }
 
-export function DescriptionTable({ descriptions, type }: DescriptionTableProps) {
+export const DescriptionTable = ({ descriptions, type }: DescriptionTableProps) => {
   const [selectedDescription, setSelectedDescription] = useState<Description | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const handleEdit = (description: Description) => {
+  // Memoize callbacks to prevent function recreation on every render
+  const handleEdit = useCallback((description: Description) => {
     setSelectedDescription(description);
     setIsEditDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (description: Description) => {
+  const handleDelete = useCallback((description: Description) => {
     setSelectedDescription(description);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
   return (
     <>
