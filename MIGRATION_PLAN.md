@@ -1396,10 +1396,10 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 - [X] Polish dashboard UI
 
 **Week 6: Transactions Module**
-- [ ] Transaction list page (paginated)
-- [ ] Annual accounting/report page
-- [ ] Chart integration (Recharts)
-- [ ] Trend analysis page
+- [X] Transaction list page (paginated)
+- [X] Annual accounting/report page
+- [X] Chart integration (Recharts)
+- [X] Trend analysis page
 - [ ] Export functionality (if needed)
 
 **Week 7: Settings & Admin**
@@ -1461,9 +1461,9 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 - [x] Transaction accordion/expansion ✅
 
 **Transactions Module:**
-- [ ] Paginated transaction list
-- [ ] Annual accounting view (chart + table)
-- [ ] Trend analysis with charts
+- [X] Paginated transaction list
+- [X] Annual accounting view (chart + table)
+- [X] Trend analysis with charts
 - [ ] Export data (CSV/PDF if needed)
 
 **Settings:**

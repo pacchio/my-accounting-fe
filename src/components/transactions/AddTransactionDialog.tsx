@@ -139,7 +139,7 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>New Transaction</DialogTitle>
           <DialogDescription>
