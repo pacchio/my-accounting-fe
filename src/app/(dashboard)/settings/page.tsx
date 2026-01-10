@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Tags } from 'lucide-react';
+import { Tags, User } from 'lucide-react';
 
 export default function SettingsPage() {
   return (
@@ -14,6 +14,29 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        {/* Profile Card */}
+        <Card className="flex flex-col">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5 text-blue-600" />
+              <div>
+                <CardTitle>Profile</CardTitle>
+                <CardDescription>View your account details</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <p className="text-sm text-muted-foreground mb-4">
+              View and manage your personal account information, email, and account status.
+            </p>
+            <Button asChild>
+              <Link href="/profile">
+                View Profile
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Description Management Card */}
         <Card className="flex flex-col">
           <CardHeader>
@@ -38,7 +61,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* More settings can be added here in the future */}
-        {/* Example: User Profile, Notifications, etc. */}
+        {/* Example: Notifications, Preferences, etc. */}
       </div>
     </div>
   );

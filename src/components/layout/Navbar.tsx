@@ -21,7 +21,6 @@ import { toast } from 'sonner';
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/transactions', label: 'Transactions', icon: List },
-  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function Navbar() {
@@ -113,6 +112,13 @@ export function Navbar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
@@ -161,6 +167,16 @@ export function Navbar() {
                       </Button>
                     );
                   })}
+                  <Button
+                    variant={pathname.startsWith('/settings') ? 'secondary' : 'ghost'}
+                    asChild
+                    className="justify-start gap-2"
+                  >
+                    <Link href="/settings">
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </Link>
+                  </Button>
                   {isAdmin && (
                     <Button
                       variant={pathname.startsWith('/admin') ? 'secondary' : 'ghost'}
