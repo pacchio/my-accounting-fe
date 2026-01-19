@@ -24,10 +24,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useRegisterMutation } from '@/store/api/authApi';
-import { useAppSelector } from '@/store/hooks';
+import { useRegisterMutation, useGoogleLoginMutation } from '@/store/api/authApi';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { loginSuccess } from '@/store/slices/authSlice';
+import { decodeJWT } from '@/lib/utils/jwt';
 import { toast } from 'sonner';
 import { UserPlus, Home } from 'lucide-react';
+import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 const registrationSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -45,8 +48,10 @@ type RegistrationFormValues = z.infer<typeof registrationSchema>;
 
 export default function RegistrationPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const [register, { isLoading }] = useRegisterMutation();
+  const [googleLogin] = useGoogleLoginMutation();
   const [isMounted, setIsMounted] = useState(false);
 
   const form = useForm<RegistrationFormValues>({
@@ -95,6 +100,46 @@ export default function RegistrationPage() {
     }
   };
 
+  const handleGoogleSignup = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast.error('Google signup failed');
+      return;
+    }
+
+    try {
+      const result = await googleLogin({
+        credential: credentialResponse.credential
+      }).unwrap();
+
+      // Decode JWT to get user info
+      const user = decodeJWT(result.token);
+
+      if (!user) {
+        toast.error('Error decoding token');
+        return;
+      }
+
+      // Update Redux state
+      dispatch(loginSuccess({
+        token: result.token,
+        user,
+      }));
+
+      toast.success('Account created successfully with Google!');
+      router.push('/dashboard');
+    } catch (error: any) {
+      const errorMessage =
+        error?.data?.message || error?.message || 'Google signup failed';
+      toast.error(errorMessage);
+    }
+  };
+
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md">
@@ -109,7 +154,37 @@ export default function RegistrationPage() {
             Start managing your personal finances
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {googleClientId && (
+            <>
+              <div className="flex justify-center">
+                <GoogleOAuthProvider clientId={googleClientId}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSignup}
+                    onError={() => {
+                      toast.error('Google signup failed');
+                    }}
+                    theme="outline"
+                    size="large"
+                    text="signup_with"
+                    width="100%"
+                  />
+                </GoogleOAuthProvider>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or sign up with email
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

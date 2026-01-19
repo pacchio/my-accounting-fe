@@ -95,6 +95,7 @@ export function UserManagement() {
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Provider</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Roles</TableHead>
               <TableHead>Registered</TableHead>
@@ -103,7 +104,7 @@ export function UserManagement() {
           <TableBody>
             {data.users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No users found
                 </TableCell>
               </TableRow>
@@ -114,6 +115,17 @@ export function UserManagement() {
                   <TableCell className="text-sm">{user.email}</TableCell>
                   <TableCell className="text-sm">
                     {user.firstname} {user.lastname}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user.provider === 'google'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                      }`}
+                    >
+                      {user.provider === 'google' ? '🔵 Google' : '✉️ Email'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

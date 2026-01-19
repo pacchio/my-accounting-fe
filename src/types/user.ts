@@ -5,11 +5,16 @@ export interface User {
   email: string;
   username: string;
   role: 'ROLE_USER' | 'ROLE_ADMIN' | 'ROLE_USER_ADMIN';
+  provider?: string;
 }
 
 export interface LoginRequest {
   usernameOrEmail: string;
   password: string;
+}
+
+export interface GoogleLoginRequest {
+  credential: string;
 }
 
 export interface LoginResponse {
@@ -29,4 +34,8 @@ export interface UserInfo {
   email: string;
   username: string;
   role: string;
+  provider: string;
+  firstname?: string;
+  lastname?: string;
+  enabled?: boolean;
 }

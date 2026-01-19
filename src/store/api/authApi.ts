@@ -4,6 +4,7 @@ import type {
   LoginResponse,
   UserInfo,
   RegistrationRequest,
+  GoogleLoginRequest,
 } from '@/types';
 
 export const authApi = apiSlice.injectEndpoints({
@@ -13,6 +14,14 @@ export const authApi = apiSlice.injectEndpoints({
         url: '/auth',
         method: 'POST',
         body: credentials,
+      }),
+      invalidatesTags: ['Auth'],
+    }),
+    googleLogin: builder.mutation<LoginResponse, GoogleLoginRequest>({
+      query: (data) => ({
+        url: '/auth/google',
+        method: 'POST',
+        body: data,
       }),
       invalidatesTags: ['Auth'],
     }),
@@ -32,6 +41,7 @@ export const authApi = apiSlice.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useGoogleLoginMutation,
   useGetUserInfoQuery,
   useLazyGetUserInfoQuery,
   useRegisterMutation,

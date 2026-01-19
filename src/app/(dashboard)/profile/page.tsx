@@ -1,15 +1,58 @@
 'use client';
 
-import { useAppSelector } from '@/store/hooks';
+import { useEffect, useRef } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { useGetUserInfoQuery } from '@/store/api/authApi';
+import { loginSuccess } from '@/store/slices/authSlice';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ProfilePage() {
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const token = useAppSelector((state) => state.auth.token);
+  const { data: userInfo, isLoading } = useGetUserInfoQuery();
+  const hasUpdatedProvider = useRef(false);
 
-  if (!user) {
+  // Update Redux state when userInfo is loaded (only once)
+  useEffect(() => {
+    if (userInfo && token && user && !hasUpdatedProvider.current && userInfo.provider && userInfo.provider !== user.provider) {
+      hasUpdatedProvider.current = true;
+      dispatch(
+        loginSuccess({
+          token,
+          user: {
+            ...user,
+            provider: userInfo.provider,
+          },
+        })
+      );
+    }
+  }, [userInfo, token, user, dispatch]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Link href="/settings">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+        </div>
+        <Card>
+          <CardContent className="py-12 flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!user || !userInfo) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-4">
@@ -28,6 +71,8 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  const provider = userInfo.provider || user.provider || 'local';
 
   return (
     <div className="space-y-6">
@@ -71,6 +116,36 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Name */}
+          {(userInfo.firstname || userInfo.lastname) && (
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                Name
+              </label>
+              <div className="px-3 py-2 rounded-md bg-muted/50 text-sm font-medium">
+                {userInfo.firstname} {userInfo.lastname}
+              </div>
+            </div>
+          )}
+
+          {/* Authentication Provider */}
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              Authentication Method
+            </label>
+            <div className="px-3 py-2 rounded-md bg-muted/50">
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  provider === 'google'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                }`}
+              >
+                {provider === 'google' ? '🔵 Google Account' : '✉️ Email & Password'}
+              </span>
+            </div>
+          </div>
+
           {/* Role */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -80,16 +155,6 @@ export default function ProfilePage() {
               {user.role === 'ROLE_ADMIN' || user.role === 'ROLE_USER_ADMIN' ? 'Administrator' : 'User'}
             </div>
           </div>
-
-          {/* ID */}
-          {/*<div>*/}
-          {/*  <label className="block text-sm font-medium text-muted-foreground mb-2">*/}
-          {/*    Account ID*/}
-          {/*  </label>*/}
-          {/*  <div className="px-3 py-2 rounded-md bg-muted/50 text-sm font-mono text-xs">*/}
-          {/*    {user.person_id}*/}
-          {/*  </div>*/}
-          {/*</div>*/}
         </CardContent>
       </Card>
 

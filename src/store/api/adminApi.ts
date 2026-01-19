@@ -8,6 +8,7 @@ export interface User {
   lastname: string;
   enabled: boolean;
   registration_date: string;
+  provider: string;
   roles: string[];
 }
 
