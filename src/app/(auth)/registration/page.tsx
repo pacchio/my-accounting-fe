@@ -27,7 +27,7 @@ import {
 import { useRegisterMutation } from '@/store/api/authApi';
 import { useAppSelector } from '@/store/hooks';
 import { toast } from 'sonner';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Home } from 'lucide-react';
 
 const registrationSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
@@ -225,6 +225,12 @@ export default function RegistrationPage() {
               Sign in
             </Link>
           </div>
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/" className="flex items-center justify-center gap-2">
+              <Home className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
         </CardFooter>
       </Card>
     </div>

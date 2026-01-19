@@ -29,7 +29,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginSuccess } from '@/store/slices/authSlice';
 import { decodeJWT } from '@/lib/utils/jwt';
 import { toast } from 'sonner';
-import { LogIn } from 'lucide-react';
+import { LogIn, Home } from 'lucide-react';
 
 const loginSchema = z.object({
   usernameOrEmail: z.string().min(1, 'Required field'),
@@ -156,6 +156,12 @@ export default function LoginPage() {
               Sign up
             </Link>
           </div>
+          <Button asChild variant="ghost" className="w-full">
+            <Link href="/" className="flex items-center justify-center gap-2">
+              <Home className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
         </CardFooter>
       </Card>
     </div>
