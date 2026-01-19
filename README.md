@@ -115,6 +115,7 @@ src/
 - ✅ **Category Management** - CRUD for income/expense categories
 - ✅ **Profile** - User profile view
 - ✅ **Admin Panel** - User management (admin only)
+- ✅ **Contact** - Contact form for support and feedback
 
 ### Key Components
 

@@ -205,7 +205,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 py-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-3 md:grid-cols-3 gap-8 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
@@ -219,6 +219,12 @@ export default function Home() {
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li><Link href="/login" className="hover:text-blue-600 dark:hover:text-blue-400">Sign In</Link></li>
                 <li><Link href="/registration" className="hover:text-blue-600 dark:hover:text-blue-400">Create Account</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li><Link href="/contact" className="hover:text-blue-600 dark:hover:text-blue-400">Contact Us</Link></li>
               </ul>
             </div>
             <div>
