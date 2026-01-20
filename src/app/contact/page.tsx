@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,7 +26,7 @@ import {
 } from '@/components/ui/form';
 import { useSendContactMessageMutation } from '@/store/api/contactApi';
 import { toast } from 'sonner';
-import { ArrowLeft, Mail, Send, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle } from 'lucide-react';
 
 const contactSchema = z.object({
   firstname: z.string().min(1, 'First name is required'),
@@ -115,8 +116,8 @@ export default function ContactPage() {
         <Card>
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-white">
-                <Mail className="h-6 w-6" />
+              <div className="flex h-12 w-12 items-center justify-center">
+                <Image src="/logo.png" alt="My Accounting" width={48} height={48} className="rounded-lg" />
               </div>
             </div>
             <CardTitle className="text-3xl text-center">Contact Us</CardTitle>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,8 +48,8 @@ export function Navbar() {
         {/* Logo */}
         <div className="flex items-center gap-6">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <span className="text-lg font-bold">M</span>
+            <div className="flex h-8 w-8 items-center justify-center">
+              <Image src="/logo.png" alt="My Accounting" width={32} height={32} className="rounded-md" />
             </div>
             <span className="hidden font-bold sm:inline-block">My Accounting</span>
           </Link>

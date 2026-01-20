@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Wallet, PieChart, BarChart3 } from 'lucide-react';
+import { ArrowRight, PieChart, BarChart3 } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -9,8 +10,8 @@ export default function Home() {
       <nav className="border-b border-gray-200/50 bg-white/95 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-950/95 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-              <Wallet className="h-5 w-5 text-white" />
+            <div className="flex h-8 w-8 items-center justify-center">
+              <Image src="/logo.png" alt="My Accounting" width={32} height={32} className="rounded-lg" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">My Accounting</span>
           </div>
@@ -104,8 +105,8 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
             {/* Feature 1 - Track & Organize */}
             <div className="group p-8 rounded-2xl border-2 border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-2xl dark:hover:shadow-blue-900/30 transition-all duration-300 bg-gradient-to-br from-white via-blue-50/20 to-white dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900">
-              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform shadow-xl">
-                <Wallet className="h-8 w-8 text-white" />
+              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform shadow-xl p-3">
+                <Image src="/logo.png" alt="Track & Organize" width={40} height={40} className="brightness-0 invert" />
               </div>
               <h3 className="mb-4 text-2xl font-bold">Track & Organize</h3>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
