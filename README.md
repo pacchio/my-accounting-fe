@@ -7,6 +7,21 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.0+-38bdf8?logo=tailwind-css)](https://tailwindcss.com/)
 
+## 📖 About
+
+**My Accounting** is a comprehensive personal finance management application that helps you take control of your money. Built with modern web technologies, it provides a powerful yet intuitive interface to track income and expenses, manage multiple accounts, visualize spending patterns, and make informed financial decisions.
+
+Unlike complex accounting software, My Accounting focuses on simplicity and ease of use while providing powerful features. Whether you're budgeting for the first time or managing multiple income streams, this application adapts to your needs. The clean, modern interface makes financial tracking effortless, and the visual analytics help you understand where your money is going at a glance.
+
+**Key Highlights:**
+- 💰 Track income and expenses with detailed categorization
+- 📊 Beautiful charts and visual reports  
+- 🏦 Manage multiple accounts in one place
+- 🔐 Secure authentication (email/password + Google OAuth)
+- 📱 Responsive design for all devices
+- 🌓 Full dark mode support
+- ⚡ Real-time updates
+
 ---
 
 ## 🚀 Quick Start
