@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { ControllerRenderProps, FieldValues, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import {
   Dialog,
   DialogContent,
@@ -12,39 +12,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useAddTransactionMutation } from '@/store/api/transactionsApi';
-import { useGetTotalsQuery } from '@/store/api/totalsApi';
-import { useGetDescriptionsQuery } from '@/store/api/descriptionsApi';
-import { OperationType } from '@/types';
-import { format } from 'date-fns';
-import { CalendarIcon, Check, ChevronsUpDown, ArrowUpCircle, ArrowDownCircle, ArrowLeftRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useGetDescriptionsQuery } from '@/store/api/descriptionsApi';
+import { useGetTotalsQuery } from '@/store/api/totalsApi';
+import { useAddTransactionMutation } from '@/store/api/transactionsApi';
+import { OperationType } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, CalendarIcon, Check, ChevronsUpDown } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 const addTransactionSchema = z.object({
   type: z.nativeEnum(OperationType),
-  amount: z.number().positive('Amount must be positive'),
+  amount: z.string()
+    .min(1, 'Amount is required')
+    .refine((val) => {
+      const n = parseFloat(val.replace(',', '.'));
+      return !isNaN(n) && n > 0;
+    }, 'Amount must be a positive number'),
   description: z.string().optional(),
   additionalNotes: z.string().optional(),
   date: z.date(),
@@ -66,7 +58,6 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
   const {
     data: descriptions,
     isLoading: isLoadingDescriptions,
-    error: descriptionsError
   } = useGetDescriptionsQuery(true);
   const [createAnother, setCreateAnother] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
@@ -76,6 +67,7 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
     resolver: zodResolver(addTransactionSchema),
     defaultValues: {
       type: OperationType.EXPENSE,
+      amount: '',
       description: '',
       additionalNotes: '',
       date: new Date(),
@@ -94,9 +86,10 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
 
   const onSubmit = async (data: AddTransactionFormValues) => {
     try {
+      const amount = parseFloat(data.amount.replace(',', '.'));
       await addTransaction({
         type: data.type,
-        amount: data.amount,
+        amount,
         description: data.description || null,
         additionalNotes: data.additionalNotes || null,
         date: data.date,
@@ -109,15 +102,13 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
       toast.success('Transaction added successfully');
 
       if (createAnother) {
-        // Keep type, date, and accounts - only reset amount and notes
-        form.setValue('amount', 0);
+        form.setValue('amount', '');
         form.setValue('description', '');
         form.setValue('additionalNotes', '');
       } else {
         form.reset();
         onOpenChange(false);
       }
-      // Trigger refetch and expand/scroll after dialog closes
       if (onTransactionAdded) {
         onTransactionAdded({
           date: data.date,
@@ -125,7 +116,7 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
           type: data.type,
         }, !createAnother);
       }
-    } catch (error) {
+    } catch {
       toast.error('Error adding transaction');
     }
   };
@@ -160,12 +151,15 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
                     <FormLabel>Amount (€)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0,00"
                         className="w-full"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onKeyDown={(e) => {
+                          const allowed = /^[0-9.,]$|^(Backspace|Delete|ArrowLeft|ArrowRight|ArrowUp|ArrowDown|Tab|Home|End)$/;
+                          if (!allowed.test(e.key) && !e.metaKey && !e.ctrlKey) e.preventDefault();
+                        }}
                       />
                     </FormControl>
                     <FormMessage/>
@@ -197,7 +191,7 @@ export function AddTransactionDialog({open, onOpenChange, onTransactionAdded}: A
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0" align="start">
+                        <PopoverContent className="w-75 p-0" align="start">
                           <Command shouldFilter={false}>
                             <CommandInput
                               placeholder="Search or type new..."
