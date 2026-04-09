@@ -87,7 +87,7 @@ export function TrendChart({ data, chartType }: TrendChartProps) {
               width={100}
             />
             <Tooltip
-              formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+              formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')}
               labelFormatter={(label) => `Year ${label}`}
             />
             <Legend />

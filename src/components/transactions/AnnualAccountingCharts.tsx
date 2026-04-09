@@ -79,7 +79,7 @@ export function AnnualAccountingCharts({ data }: AnnualAccountingChartsProps) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+                formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -110,7 +110,7 @@ export function AnnualAccountingCharts({ data }: AnnualAccountingChartsProps) {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
+                formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')}
               />
             </PieChart>
           </ResponsiveContainer>

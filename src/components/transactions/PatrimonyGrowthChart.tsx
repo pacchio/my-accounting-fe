@@ -80,7 +80,7 @@ export function PatrimonyGrowthChart({ data }: PatrimonyGrowthChartProps) {
             <XAxis dataKey="year" />
             <YAxis tickFormatter={formatCurrency} width={110} />
             <Tooltip
-              formatter={(value: number | undefined) => [value !== undefined ? formatCurrency(value) : '', 'Patrimony']}
+              formatter={(value) => [typeof value === 'number' ? formatCurrency(value) : '', 'Patrimony']}
               labelFormatter={(label) => `Year ${label}`}
               content={({ active, payload, label }) => {
                 if (!active || !payload || !payload.length) return null;
