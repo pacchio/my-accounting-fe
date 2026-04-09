@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { List, PieChart, TrendingUp } from 'lucide-react';
+import { List, PieChart, TrendingUp, Landmark } from 'lucide-react';
 
 const navItems = [
   {
@@ -20,6 +20,11 @@ const navItems = [
     title: 'Trend Analysis',
     href: '/transactions/trend',
     icon: TrendingUp,
+  },
+  {
+    title: 'Patrimony Growth',
+    href: '/transactions/patrimony',
+    icon: Landmark,
   },
 ];
 
